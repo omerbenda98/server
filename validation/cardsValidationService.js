@@ -9,7 +9,14 @@ const createCardValidation = (userInput) => {
   }
   throw new Error("validator undefined");
 };
+const editCardValidation = (userInput) => {
+  if (validatorOption === "Joi") {
+    return joiCardsValidation.validateEditCardSchema(userInput);
+  }
+  throw new Error("validator undefined");
+};
 
 module.exports = {
   createCardValidation,
+  editCardValidation,
 };

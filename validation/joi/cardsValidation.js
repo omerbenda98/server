@@ -39,10 +39,58 @@ const createCardSchema = Joi.object({
   user_id: Joi.string().hex().length(24),
 });
 
+const updateCardSchema = Joi.object({
+  title: Joi.string().min(2).max(256).optional(),
+  subTitle: Joi.string().min(2).max(256).optional(),
+  description: Joi.string().min(2).max(1024).optional(),
+  phone: Joi.string()
+    .regex(new RegExp(/0[0-9]{1,2}\-?\s?[0-9]{3}\s?[0-9]{4}/))
+    .optional(),
+  email: Joi.string()
+    .regex(
+      new RegExp(/^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$/)
+    )
+    .optional(),
+  web: Joi.string()
+    .regex(
+      new RegExp(
+        /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/
+      )
+    )
+    .optional(),
+  image: Joi.object()
+    .keys({
+      url: Joi.string()
+        .regex(
+          new RegExp(
+            /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/
+          )
+        )
+        .optional(),
+      alt: Joi.string().min(2).max(256).optional(),
+    })
+    .optional(),
+  address: Joi.object()
+    .keys({
+      state: Joi.string().min(2).max(256).optional(),
+      country: Joi.string().min(2).max(256).optional(),
+      city: Joi.string().min(2).max(256).optional(),
+      street: Joi.string().min(2).max(256).optional(),
+      houseNumber: Joi.number().min(1).optional(),
+      zip: Joi.number().optional(),
+    })
+    .optional(),
+  bizNumber: Joi.number().min(1000000).max(9999999).optional(),
+});
+
 const validateCardSchema = (userInput) => {
   return createCardSchema.validateAsync(userInput);
+};
+const validateEditCardSchema = (userInput) => {
+  return updateCardSchema.validateAsync(userInput);
 };
 
 module.exports = {
   validateCardSchema,
+  validateEditCardSchema,
 };

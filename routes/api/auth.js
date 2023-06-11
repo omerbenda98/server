@@ -15,19 +15,16 @@ const permissionsMiddleware = require("../../middleware/permissionsMiddleware");
 //http://localhost:8181/api/auth/register
 router.post("/register", async (req, res) => {
   try {
-    /*
-     * joi
-     * email unique - mongoose -> mongo
-     * encrypt the password
-     * normalize
-     * create user
-     * response user created
-     */
     await registerUserValidation(req.body);
+    const existingUser = await usersServiceModel.getUserByEmail(req.body.email);
+    if (existingUser) {
+      return res.status(400).json({ msg: "email already taken" });
+    }
+
     req.body.password = await hashService.generateHash(req.body.password);
     req.body = normalizeUser(req.body);
     await usersServiceModel.registerUser(req.body);
-    res.json({ msg: "register" });
+    res.json({ msg: "user registered successfully" });
   } catch (err) {
     res.status(400).json(err);
   }

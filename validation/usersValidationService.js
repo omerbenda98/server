@@ -3,13 +3,13 @@ const joiUsersValidation = require("./joi/usersValidation");
 
 const validatorOption = config.get("validatorOption");
 
-const idValidation = (userInput) => {
+const editUserValidation = (userInput) => {
   if (validatorOption === "Joi") {
-    return joiUsersValidation.validateIdSchema(userInput);
+    return joiUsersValidation.validateUserSchema(userInput);
   }
   throw new Error("validator undefined");
 };
 
 module.exports = {
-  idValidation,
+  editUserValidation,
 };

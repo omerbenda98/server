@@ -4,33 +4,34 @@ const normalizeUser = require("../../model/usersService/helpers/normalizationUse
 const usersServiceModel = require("../../model/usersService/usersService");
 const authmw = require("../../middleware/authMiddleware");
 const permissionsMiddleware = require("../../middleware/permissionsMiddleware");
+const authValidationService = require("../../validation/authValidationService");
 const usersValidationService = require("../../validation/usersValidationService");
 const normalizationUserService = require("../../model/usersService/helpers/normalizationUserService");
 
-router.get("/", async (req, res) => {
-  try {
-    const allUsers = await usersServiceModel.getAllUsers();
-    res.json(allUsers);
-  } catch (err) {
-    res.status(400).json(err);
-  }
-});
-
 router.get(
-  "/:id",
+  "/",
   authmw,
-  permissionsMiddleware(false, true, true),
+  permissionsMiddleware(false, true, false),
   async (req, res) => {
     try {
-      //! joi validation
-      await usersValidationService.idValidation(req.params.id);
-      const userFromDB = await usersServiceModel.getUserById(req.params.id);
-      res.json(userFromDB);
+      const allUsers = await usersServiceModel.getAllUsers();
+      res.json(allUsers);
     } catch (err) {
       res.status(400).json(err);
     }
   }
 );
+
+router.get("/:id", authmw, async (req, res) => {
+  try {
+    //! joi validation
+    await authValidationService.userIdValidation(req.params.id);
+    const userFromDB = await usersServiceModel.getUserById(req.params.id);
+    res.json(userFromDB);
+  } catch (err) {
+    res.status(400).json(err);
+  }
+});
 
 // admin or biz owner
 router.put(
@@ -39,13 +40,10 @@ router.put(
   permissionsMiddleware(false, true, true),
   async (req, res) => {
     try {
-      //! joi validation
-      await usersValidationService.idValidation(req.params.id);
-      //! normalize
-      req.body = normalizeUser(req.body);
+      await usersValidationService.editUserValidation(req.body);
       const userFromDB = await usersServiceModel.updateUser(
         req.params.id,
-        req.body
+        normalUser
       );
       res.json(userFromDB);
     } catch (err) {
@@ -53,34 +51,34 @@ router.put(
     }
   }
 );
-router.patch("/:id/isBusiness", async (req, res) => {
+router.patch("/:id/isBusiness", authmw, async (req, res) => {
   try {
-    await usersValidationService.idValidation(req.params.id);
-    const userFromDB = await usersServiceModel.updateUser(req.params.id, {
-      isBusiness: req.body.isBusiness,
+    await authValidationService.userIdValidation(req.params.id);
+    const userFromDB = await usersServiceModel.getUserById(req.params.id);
+    if (!userFromDB) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+    const updatedUser = await usersServiceModel.updateUser(req.params.id, {
+      isBusiness: !userFromDB.isBusiness,
     });
-    res.json(userFromDB);
+    res.json(updatedUser);
   } catch (err) {
     res.status(400).json(err);
   }
 });
-router.delete(
-  "/:id/delete",
-  authmw,
-  permissionsMiddleware(false, true, true),
-  async (req, res) => {
-    try {
-      //! joi validation
-      await usersValidationService.idValidation(req.params.id);
-      const userFromDB = await usersServiceModel.deleteUser(req.params.id);
-      if (userFromDB) {
-        res.json({ msg: "user deleted" });
-      } else {
-        res.json({ msg: "could not find the user" });
-      }
-    } catch (err) {
-      res.status(400).json(err);
+
+router.delete("/:id", authmw, async (req, res) => {
+  try {
+    //! joi validation
+    await authValidationService.userIdValidation(req.params.id);
+    const userFromDB = await usersServiceModel.deleteUser(req.params.id);
+    if (userFromDB) {
+      res.json({ msg: "user deleted" });
+    } else {
+      res.json({ msg: "could not find the user" });
     }
+  } catch (err) {
+    res.status(400).json(err);
   }
-);
+});
 module.exports = router;

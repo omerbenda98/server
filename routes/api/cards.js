@@ -5,6 +5,7 @@ const normalizeCard = require("../../model/cardsService/helpers/normalizationCar
 const cardsValidationService = require("../../validation/cardsValidationService");
 const permissionsMiddleware = require("../../middleware/permissionsMiddleware");
 const authmw = require("../../middleware/authMiddleware");
+const authValidationService = require("../../validation/authValidationService");
 
 // create card
 router.post(
@@ -16,7 +17,7 @@ router.post(
       await cardsValidationService.createCardValidation(req.body);
       let normalCard = await normalizeCard(req.body, req.userData._id);
       const dataFromMongoose = await cardsServiceModel.createCard(normalCard);
-      res.json({ msg: "card created" });
+      res.json(dataFromMongoose);
     } catch (err) {
       res.status(400).json(err);
     }
@@ -44,7 +45,7 @@ router.get("/my-cards", authmw, async (req, res) => {
 // get specific card
 router.get("/:id", async (req, res) => {
   try {
-    //! joi validation
+    await authValidationService.userIdValidation(req.params.id);
     const cardFromDB = await cardsServiceModel.getCardById(req.params.id);
     res.json(cardFromDB);
   } catch (err) {
@@ -60,9 +61,13 @@ router.put(
   async (req, res) => {
     try {
       //! joi validation
+      await cardsValidationService.editCardValidation(req.body);
       let normalCard = await normalizeCard(req.body, req.userData._id);
-      await cardsServiceModel.updateCard(req.params.id, normalCard);
-      res.json({ msg: "card edited successfully" });
+      let updatedCard = await cardsServiceModel.updateCard(
+        req.params.id,
+        normalCard
+      );
+      res.json(updatedCard);
     } catch (err) {
       res.status(400).json(err);
     }
