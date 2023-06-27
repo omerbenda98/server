@@ -24,7 +24,7 @@ router.post("/register", async (req, res) => {
     req.body.password = await hashService.generateHash(req.body.password);
     req.body = normalizeUser(req.body);
     await usersServiceModel.registerUser(req.body);
-    res.json({ msg: "user registered successfully" });
+    res.json(req.body);
   } catch (err) {
     res.status(400).json(err);
   }
@@ -33,13 +33,6 @@ router.post("/register", async (req, res) => {
 //http://localhost:8181/api/auth/login
 router.post("/login", async (req, res) => {
   try {
-    /**
-     * *joi
-     * *get user from database
-     * *check password
-     * *create token
-     * *send to user
-     */
     await loginUserValidation(req.body);
     const userData = await usersServiceModel.getUserByEmail(req.body.email);
     if (!userData) throw new CustomError("invalid email and/or password");

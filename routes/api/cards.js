@@ -33,7 +33,7 @@ router.get("/", async (req, res) => {
     res.status(400).json(err);
   }
 });
-// get specific card
+// get cards created by connected user
 router.get("/my-cards", authmw, async (req, res) => {
   try {
     const myCards = await cardsServiceModel.getMyCards(req.userData._id);
@@ -60,7 +60,6 @@ router.put(
   permissionsMiddleware(false, false, true),
   async (req, res) => {
     try {
-      //! joi validation
       await cardsValidationService.editCardValidation(req.body);
       let normalCard = await normalizeCard(req.body, req.userData._id);
       let updatedCard = await cardsServiceModel.updateCard(
@@ -73,30 +72,30 @@ router.put(
     }
   }
 );
+//add like to card
 router.patch("/card-like/:id", authmw, async (req, res) => {
   try {
-    //joi
-    // await usersValidationService.idValidation(req.params.id);
+    await authValidationService.userIdValidation(req.params.id);
     const userId = req.userData._id;
-    await cardsServiceModel.addLike(req.params.id, userId);
-    res.json({ msg: "card like added/removed" });
+    const card = await cardsServiceModel.addLike(req.params.id, userId);
+    res.json(card);
   } catch (err) {
     console.error(err);
     res.status(400).json(err);
   }
 });
 
-// admin or biz owner
+// delete card
 router.delete(
   "/:id",
   authmw,
   permissionsMiddleware(false, true, true),
   async (req, res) => {
     try {
-      //! joi validation
+      await authValidationService.userIdValidation(req.params.id);
       const cardFromDB = await cardsServiceModel.deleteCard(req.params.id);
       if (cardFromDB) {
-        res.json({ msg: "card deleted" });
+        res.json(cardFromDB);
       } else {
         res.json({ msg: "could not find the card" });
       }

@@ -1,13 +1,8 @@
 const CustomError = require("../utils/CustomError");
 const { getCardById } = require("../model/cardsService/cardsService");
-/*
-    TODO:
-        finish isBizSpecific
-*/
 
 const checkIfBizOwner = async (iduser, idcard, res, next) => {
   try {
-    //! joi the idcard
     const cardData = await getCardById(idcard);
     if (!cardData) {
       return res.status(400).json({ msg: "card not found" });
@@ -21,12 +16,6 @@ const checkIfBizOwner = async (iduser, idcard, res, next) => {
     res.status(400).json(err);
   }
 };
-
-/*
-  isBiz = every biz
-  isAdmin = is admin
-  isBizOwner = biz owner
-*/
 
 const permissionsMiddleware = (isBiz, isAdmin, isBizOwner) => {
   return (req, res, next) => {

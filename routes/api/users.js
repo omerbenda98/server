@@ -7,7 +7,8 @@ const permissionsMiddleware = require("../../middleware/permissionsMiddleware");
 const authValidationService = require("../../validation/authValidationService");
 const usersValidationService = require("../../validation/usersValidationService");
 const normalizationUserService = require("../../model/usersService/helpers/normalizationUserService");
-
+const chalk = require("chalk");
+//get all users
 router.get(
   "/",
   authmw,
@@ -21,10 +22,9 @@ router.get(
     }
   }
 );
-
+//get specific user
 router.get("/:id", authmw, async (req, res) => {
   try {
-    //! joi validation
     await authValidationService.userIdValidation(req.params.id);
     const userFromDB = await usersServiceModel.getUserById(req.params.id);
     res.json(userFromDB);
@@ -33,24 +33,20 @@ router.get("/:id", authmw, async (req, res) => {
   }
 });
 
-// admin or biz owner
-router.put(
-  "/:id",
-  authmw,
-  permissionsMiddleware(false, true, true),
-  async (req, res) => {
-    try {
-      await usersValidationService.editUserValidation(req.body);
-      const userFromDB = await usersServiceModel.updateUser(
-        req.params.id,
-        normalUser
-      );
-      res.json(userFromDB);
-    } catch (err) {
-      res.status(400).json(err);
-    }
+// update user
+router.put("/:id", authmw, async (req, res) => {
+  try {
+    await usersValidationService.editUserValidation(req.body);
+    const userFromDB = await usersServiceModel.updateUser(
+      req.params.id,
+      req.body
+    );
+    res.json(userFromDB);
+  } catch (err) {
+    res.status(400).json(err);
   }
-);
+});
+//toggle users isBusiness status
 router.patch("/:id/isBusiness", authmw, async (req, res) => {
   try {
     await authValidationService.userIdValidation(req.params.id);
@@ -66,14 +62,13 @@ router.patch("/:id/isBusiness", authmw, async (req, res) => {
     res.status(400).json(err);
   }
 });
-
+//delete user
 router.delete("/:id", authmw, async (req, res) => {
   try {
-    //! joi validation
     await authValidationService.userIdValidation(req.params.id);
     const userFromDB = await usersServiceModel.deleteUser(req.params.id);
     if (userFromDB) {
-      res.json({ msg: "user deleted" });
+      res.json(userFromDB);
     } else {
       res.json({ msg: "could not find the user" });
     }
