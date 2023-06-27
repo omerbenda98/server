@@ -1,0 +1,7 @@
+{
+  "dbConfig": {
+    "url": "mongodb+srv://admin:Aa123456!@cluster0.u45jsdg.mongodb.net/"
+  },
+  "jwt": "780y94563hj2y45wopiunj",
+  "file": "prod"
+}
