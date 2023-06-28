@@ -4,7 +4,7 @@
 
 Install the node_modules
 
-```bash
+```
 npm i
 ```
 
@@ -16,12 +16,15 @@ you can run:
 
 - It will run the app with node
 - The page will not reload if you make edits.
+- Runs production enviorment using mongos ATLAS.
+- Connection string: "mongodb+srv://admin:Aa123456!@cluster0.u45jsdg.mongodb.net/"
 
 ### `npm run dev`
 
 - Runs the app with nodemon
 - The page will reload if you make edits
-- The print at the terminal will be blue with the message:
+
+The print at the terminal will be blue with the message:
 
 `server run on: http://localhost:8181/`
 
