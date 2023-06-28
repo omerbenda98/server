@@ -12,7 +12,7 @@ const chalk = require("chalk");
 router.get(
   "/",
   authmw,
-  permissionsMiddleware(false, true, false),
+  permissionsMiddleware(false, true, false, false),
   async (req, res) => {
     try {
       const allUsers = await usersServiceModel.getAllUsers();
@@ -23,57 +23,77 @@ router.get(
   }
 );
 //get specific user
-router.get("/:id", authmw, async (req, res) => {
-  try {
-    await authValidationService.userIdValidation(req.params.id);
-    const userFromDB = await usersServiceModel.getUserById(req.params.id);
-    res.json(userFromDB);
-  } catch (err) {
-    res.status(400).json(err);
+router.get(
+  "/:id",
+  authmw,
+  permissionsMiddleware(false, true, false, true),
+  async (req, res) => {
+    try {
+      await authValidationService.userIdValidation(req.params.id);
+      const userFromDB = await usersServiceModel.getUserById(req.params.id);
+      res.json(userFromDB);
+    } catch (err) {
+      res.status(400).json(err);
+    }
   }
-});
+);
 
 // update user
-router.put("/:id", authmw, async (req, res) => {
-  try {
-    await usersValidationService.editUserValidation(req.body);
-    const userFromDB = await usersServiceModel.updateUser(
-      req.params.id,
-      req.body
-    );
-    res.json(userFromDB);
-  } catch (err) {
-    res.status(400).json(err);
-  }
-});
-//toggle users isBusiness status
-router.patch("/:id/isBusiness", authmw, async (req, res) => {
-  try {
-    await authValidationService.userIdValidation(req.params.id);
-    const userFromDB = await usersServiceModel.getUserById(req.params.id);
-    if (!userFromDB) {
-      return res.status(404).json({ msg: "User not found" });
-    }
-    const updatedUser = await usersServiceModel.updateUser(req.params.id, {
-      isBusiness: !userFromDB.isBusiness,
-    });
-    res.json(updatedUser);
-  } catch (err) {
-    res.status(400).json(err);
-  }
-});
-//delete user
-router.delete("/:id", authmw, async (req, res) => {
-  try {
-    await authValidationService.userIdValidation(req.params.id);
-    const userFromDB = await usersServiceModel.deleteUser(req.params.id);
-    if (userFromDB) {
+router.put(
+  "/:id",
+  authmw,
+  permissionsMiddleware(false, false, false, true),
+  async (req, res) => {
+    try {
+      await usersValidationService.editUserValidation(req.body);
+      const userFromDB = await usersServiceModel.updateUser(
+        req.params.id,
+        req.body
+      );
       res.json(userFromDB);
-    } else {
-      res.json({ msg: "could not find the user" });
+    } catch (err) {
+      res.status(400).json(err);
     }
-  } catch (err) {
-    res.status(400).json(err);
   }
-});
+);
+//toggle users isBusiness status
+router.patch(
+  "/:id/isBusiness",
+  authmw,
+  permissionsMiddleware(false, false, false, true),
+  async (req, res) => {
+    try {
+      await authValidationService.userIdValidation(req.params.id);
+      const userFromDB = await usersServiceModel.getUserById(req.params.id);
+      if (!userFromDB) {
+        return res.status(404).json({ msg: "User not found" });
+      }
+      const updatedUser = await usersServiceModel.updateUser(req.params.id, {
+        isBusiness: !userFromDB.isBusiness,
+      });
+      res.json(updatedUser);
+    } catch (err) {
+      res.status(400).json(err);
+    }
+  }
+);
+//delete user
+router.delete(
+  "/:id",
+  authmw,
+  permissionsMiddleware(false, true, false, true),
+  async (req, res) => {
+    try {
+      await authValidationService.userIdValidation(req.params.id);
+      const userFromDB = await usersServiceModel.deleteUser(req.params.id);
+      if (userFromDB) {
+        res.json(userFromDB);
+      } else {
+        res.json({ msg: "could not find the user" });
+      }
+    } catch (err) {
+      res.status(400).json(err);
+    }
+  }
+);
 module.exports = router;

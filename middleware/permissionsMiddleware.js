@@ -17,7 +17,12 @@ const checkIfBizOwner = async (iduser, idcard, res, next) => {
   }
 };
 
-const permissionsMiddleware = (isBiz, isAdmin, isBizOwner) => {
+const permissionsMiddleware = (
+  isBiz,
+  isAdmin,
+  isBizOwner,
+  isRegisteredUser
+) => {
   return (req, res, next) => {
     if (!req.userData) {
       throw new CustomError("must provide userData");
@@ -31,7 +36,10 @@ const permissionsMiddleware = (isBiz, isAdmin, isBizOwner) => {
     if (isBizOwner === req.userData.isBusiness && isBizOwner === true) {
       return checkIfBizOwner(req.userData._id, req.params.id, res, next);
     }
-    res.status(401).json({ msg: "unauthorized to make changes" });
+    if (isRegisteredUser && req.userData._id === req.params.id) {
+      return next();
+    }
+    res.status(401).json({ msg: "unauthorized request" });
   };
 };
 
